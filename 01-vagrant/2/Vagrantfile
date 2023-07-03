@@ -1,0 +1,43 @@
+Vagrant.configure("2") do |config|
+    config.vm.provider "virtualbox" do |vb|
+            vb.memory = "512"
+        end
+
+    config.vm.provision "shell", inline: <<-SHELL
+            apt update
+            apt install -y apache2
+     SHELL
+
+    config.vm.define "HT_2.P2_VM1" do |vm1|
+        vm1.vm.box = "generic/debian11"
+        vm1.vm.network  "private_network", ip:"192.168.50.2"
+        vm1.vm.provision "file", run: "always", source: "index.html", destination: "/tmp/index.html"
+        vm1.vm.provision "file", run: "always", source: "static.conf", destination: "/tmp/static.conf"
+
+        vm1.vm.provision "shell", inline: <<-SHELL
+            mkdir -p /var/www/static
+            mv /tmp/index.html /var/www/static/index.html
+            mv /tmp/static.conf /etc/apache2/sites-available/static.conf
+            a2dissite 000-default.conf
+            a2ensite static.conf
+            systemctl restart apache2
+        SHELL
+    end
+
+    config.vm.define "HT_2.P2_VM2" do |vm2|
+        vm2.vm.box = "generic/debian11"
+        vm2.vm.network  "private_network", ip:"192.168.50.3"
+        vm2.vm.provision "file", run: "always", source: "index.php", destination: "/tmp/index.php"
+        vm2.vm.provision "file", run: "always", source: "dynamic.conf", destination: "/tmp/dynamic.conf"
+
+        vm2.vm.provision "shell", inline: <<-SHELL
+            apt install -y php
+            mkdir -p /var/www/dynamic
+            mv /tmp/index.php /var/www/dynamic/index.php
+            mv /tmp/dynamic.conf /etc/apache2/sites-available/dynamic.conf
+            a2dissite 000-default.conf
+            a2ensite dynamic.conf
+            systemctl restart apache2
+        SHELL
+    end
+end
