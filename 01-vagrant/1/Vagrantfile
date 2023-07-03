@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
     config.vm.provision "file", run: "always", source: "static.conf", destination: "/tmp/static.conf"
     config.vm.provision "file", run: "always", source: "dynamic.conf", destination: "/tmp/dynamic.conf"
 
-    config.vm.provision "shell", inline: <<-SHELL
+    config.vm.provision "shell", privileged: false, inline: <<-SHELL
         apt update
         apt install -y apache2
         apt install -y php
