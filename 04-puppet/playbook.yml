@@ -1,0 +1,142 @@
+---
+- name: master.puppet config
+  hosts: master.puppet
+  become: true
+  tasks:
+    - file:
+        path: '{{ item.fpath }}'
+        state: file
+        owner: vagrant
+        mode: u+rw,g-rwx,o-rwx
+      loop:
+        - { fpath: /home/vagrant/private_key_slave1.puppet }
+        - { fpath: /home/vagrant/private_key_slave2.puppet }
+        - { fpath: /home/vagrant/private_key_mineserver.puppet }
+
+    - name: Import a key from a url
+      ansible.builtin.rpm_key:
+        state: present
+        key: https://yum.puppet.com/RPM-GPG-KEY-puppet-20250406
+
+    - name: install the puppet rpm from a remote repo
+      yum:
+        name: https://yum.puppet.com/puppet7-release-el-8.noarch.rpm
+        state: present
+
+    - name: Install puppet server, git
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - puppetserver
+        - git
+
+    - name: set puppet memory params
+      lineinfile:
+        path: /etc/sysconfig/puppetserver
+        regexp: '^(.*)JAVA_ARGS="-Xms2g -Xmx2g -Djruby.logger.class=com.puppetlabs.jruby_utils.jruby.Slf4jLogger"(.*)$'
+        line: 'JAVA_ARGS="-Xms256m -Xmx256m -Djruby.logger.class=com.puppetlabs.jruby_utils.jruby.Slf4jLogger";'
+        backrefs: yes
+
+    - name: Creating puppet/autosign.conf file
+      copy:
+        dest: "/etc/puppetlabs/puppet/autosign.conf"
+        content: |
+          slave1.puppet
+          slave2.puppet
+
+    - name: check is r10k installed
+      shell: /opt/puppetlabs/puppet/bin/r10k version
+      register: r10k_exists
+      ignore_errors: yes
+      changed_when: false
+
+    - name: install r10k
+      when: r10k_exists is failed
+      shell: /opt/puppetlabs/puppet/bin/gem install r10k
+
+    - name: mkdir /etc/puppetlabs/r10k/
+      file:
+        path: /etc/puppetlabs/r10k/
+        state: directory
+
+    - name: copy r10k conf file
+      copy:
+        src: /vagrant/r10k.yaml
+        dest: /etc/puppetlabs/r10k/r10k.yaml
+
+    - name: pull puppet scripts from git
+      shell: /opt/puppetlabs/puppet/bin/r10k deploy environment -p
+
+    - name: add puppet-agent configuration
+      blockinfile:
+        dest: /etc/puppetlabs/puppet/puppet.conf
+        create: yes
+        insertbefore: EOF
+        block: |
+          [agent]
+          server = master.puppet
+          runinterval = 1m
+          environment = HT4
+
+    - name: start puppet server
+      service:
+        name: puppetserver
+        enabled: true
+        state: started
+
+    - name: Stop and disable firewalld
+      service:
+        name: firewalld
+        state: stopped
+        enabled: False
+
+    - name: start puppet agent
+      service:
+        name: puppet
+        enabled: true
+        state: started
+
+- name: slaves config
+  hosts: slaves
+  become: true
+  tasks:
+    - name: Import a key from a url
+      ansible.builtin.rpm_key:
+        state: present
+        key: https://yum.puppet.com/RPM-GPG-KEY-puppet-20250406
+
+    - name: install the puppet rpm from a remote repo
+      yum:
+        name: https://yum.puppet.com/puppet7-release-el-8.noarch.rpm
+        state: present
+
+    - name: Install puppet agent
+      yum:
+        name: puppet-agent
+        state: present
+
+    - name: add puppet-agent configuration
+      blockinfile:
+        dest: /etc/puppetlabs/puppet/puppet.conf
+        create: yes
+        insertbefore: EOF
+        block: |
+          [agent]
+          server = master.puppet
+          runinterval = 1m
+          environment = HT4
+
+    - name: add master.puppet to hosts
+      blockinfile:
+        dest: /etc/hosts
+        create: yes
+        insertbefore: EOF
+        block: |
+          192.168.50.2 master.puppet    
+
+    - name: start puppet agent
+      service:
+        name: puppet
+        enabled: true
+        state: started
