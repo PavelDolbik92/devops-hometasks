@@ -44,6 +44,7 @@
         content: |
           slave1.puppet
           slave2.puppet
+          mineserver.puppet
 
     - name: check is r10k installed
       shell: /opt/puppetlabs/puppet/bin/r10k version
