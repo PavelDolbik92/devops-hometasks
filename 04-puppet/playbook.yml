@@ -77,7 +77,6 @@
         block: |
           [agent]
           server = master.puppet
-          runinterval = 1m
           environment = HT4
 
     - name: start puppet server
@@ -125,7 +124,6 @@
         block: |
           [agent]
           server = master.puppet
-          runinterval = 1m
           environment = HT4
 
     - name: add master.puppet to hosts
