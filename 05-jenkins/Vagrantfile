@@ -1,0 +1,22 @@
+Vagrant.configure("2") do |config|
+    config.vm.box = "generic/debian11"
+    config.vm.synced_folder  ".", "/vagrant", disabled: false
+
+    #config.vm.provider "virtualbox" do |vb|
+    #    vb.memory = 512
+    #    vb.cpus   = 1
+    #end
+
+    config.vm.define "master.jenkins", primary: true do |master|
+        master.vm.network "private_network", ip: "192.168.50.2"
+        master.vm.hostname = "master.jenkins"
+        master.vm.provider("virtualbox") { |vb| vb.memory = 2048 }
+        master.vm.provider("virtualbox") { |vb| vb.cpus = 2 }
+
+        master.vm.provision :ansible_local do |ansible|
+            ansible.playbook       = "playbook.yml"
+            ansible.limit          = "all"
+            ansible.inventory_path = "inventory"
+        end
+    end
+end

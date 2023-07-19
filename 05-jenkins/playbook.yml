@@ -1,0 +1,10 @@
+---
+- hosts: master.jenkins
+  become: true
+
+  vars:
+    jenkins_repo_key_url : "https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key"
+    jenkins_plugins : golang locale configuration-as-code build-timeout credentials-binding github-organization-folder workflow-aggregator subversion timestamper ws-cleanup
+
+  roles:
+    - jenkins

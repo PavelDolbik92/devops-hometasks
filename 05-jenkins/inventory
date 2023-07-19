@@ -1,0 +1,6 @@
+master.jenkins	    ansible_host=192.168.50.2 ansible_connection=local
+
+[all:vars]
+ansible_connection=ssh
+ansible_user=vagrant
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
