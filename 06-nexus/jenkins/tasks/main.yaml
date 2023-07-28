@@ -1,0 +1,120 @@
+---
+- name: install packages
+  apt:
+    pkg:
+      - build-essential
+      - default-jre
+      - curl
+      - jq
+    update_cache: true
+    state: present
+  notify:
+    - daemon-reload
+
+- name: Add Jenkins apt repository key.
+  ansible.builtin.get_url:
+    url: "{{ jenkins_repo_key_url }}"
+    dest: /usr/share/keyrings/jenkins-keyring.asc
+
+- name: Add Jenkins Repository url
+  shell: "echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+            https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+            /etc/apt/sources.list.d/jenkins.list > /dev/null"
+  args:
+    creates: "/etc/apt/sources.list.d/jenkins.list"
+
+- name: Ensure Jenkins is installed.
+  apt:
+    name: jenkins
+    update_cache: true
+    state: present
+
+- name: Mkdir /var/lib/jenkins/jobs/word-cloud-generator-build
+  file:
+    path: /var/lib/jenkins/jobs/word-cloud-generator-build
+    state: directory
+    owner: jenkins
+    group: jenkins
+  notify:
+    - restart jenkins
+
+- name: Copy wcg-job config xml
+  copy:
+    src: files/wcg-job-config.xml
+    dest: /var/lib/jenkins/jobs/word-cloud-generator-build/config.xml
+    owner: jenkins
+    group: jenkins
+  notify:
+    - restart jenkins
+
+- name: Copy wcg-job-vars.properties
+  copy:
+    src: files/wcg-job-vars.properties
+    dest: /var/lib/jenkins/jobs/word-cloud-generator-build/vars.properties
+    owner: jenkins
+    group: jenkins
+  notify:
+    - restart jenkins
+
+- name: Mkdir /var/lib/jenkins/init.groovy.d
+  file:
+    path: /var/lib/jenkins/init.groovy.d
+    state: directory
+    owner: jenkins
+    group: jenkins
+  notify:
+    - restart jenkins
+
+- name: Copy configuration-as-code yaml
+  copy:
+    src: files/jenkins.yaml
+    dest: /var/lib/jenkins/jenkins.yaml
+    owner: jenkins
+    group: jenkins
+  notify:
+    - restart jenkins
+
+- name: Copy groovy script 01-admin-user-init
+  copy:
+    src: files/01-admin-user-init.groovy
+    dest: /var/lib/jenkins/init.groovy.d/01-admin-user-init.groovy
+    owner: jenkins
+    group: jenkins
+  notify:
+    - restart jenkins
+
+- name: Copy Install plugin groovy script from template
+  template:
+    src: plugins.groovy.template
+    dest: /var/lib/jenkins/init.groovy.d/02-install-plugins.groovy
+    owner: jenkins
+    group: jenkins
+  notify:
+    - restart jenkins
+
+- name: Copy SSH remote hosts config
+  template:
+    src: files/sshRemoteHostsConfig.xml
+    dest: /var/lib/jenkins/org.jvnet.hudson.plugins.SSHBuildWrapper.xml
+    owner: jenkins
+    group: jenkins
+  notify:
+    - restart jenkins
+
+- name: Set arguments for the Jenkins JVM
+  lineinfile:
+    path: /lib/systemd/system/jenkins.service
+    regexp: '^Environment="JAVA_OPTS=-Djava.awt.headless=true"$'
+    line: 'Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"'
+    backrefs: yes
+  notify:
+    - restart jenkins
+
+- name: Set jenkins timeout start
+  lineinfile:
+    path: /lib/systemd/system/jenkins.service
+    regexp: '^#TimeoutStartSec=90$'
+    line: 'TimeoutStartSec=240'
+    backrefs: yes
+  notify:
+    - restart jenkins
