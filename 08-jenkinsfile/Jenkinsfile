@@ -1,0 +1,115 @@
+def test() {
+    script  {
+        final String version = sh(script: "curl -s http://$WCG_STAGING_HOST:$WCG_APP_PORT/version | jq -r '.version'", returnStdout: true).trim()
+
+        if ("1.$BUILD_NUMBER" != version) {
+            error "Invalid app version: expected - 1.$BUILD_NUMBER, actual - $version"
+        }
+
+        final String apiResult = sh(script: "curl -s -H \"Content-Type: application/json\" -d '{\"text\":\"ths is a really really really important thing this is\"}\' http://$WCG_STAGING_HOST:$WCG_APP_PORT/api | jq \'. | length\'", returnStdout: true).trim()
+        if ("7" != apiResult) {
+            error "API service returns incorrect result: expected - 7, actual - $apiResult"
+        }
+    }
+}
+
+test_set = [
+    "test1": {
+        test()
+    },
+    "test2": {
+        test()
+    }
+]
+
+pipeline {
+    agent any
+
+    tools { go 'go_lang' }
+    environment {
+        NEXUS_HOST = '192.168.50.3'
+        NEXUS_PORT = '8081'
+        WCG_APP_PORT = '8888'
+        WCG_STAGING_HOST = '192.168.50.4'
+        WCG_PROD_HOST = '192.168.50.5'
+    }
+    stages {
+        stage('Get wcg source code') {
+            steps {
+                git 'https://github.com/wickett/word-cloud-generator'
+            }
+        }
+
+        stage('Check wcg souce code and testing') {
+            steps {
+                sh '''make lint
+                      make test
+                '''
+            }
+        }
+
+        stage('Build artifact and upload to nexus') {
+            steps{
+                sh '''sed -i "s/1.DEVELOPMENT/1.$BUILD_NUMBER/g" static/version
+                      GOOS=linux GOARCH=amd64 go build -o ./artifacts/word-cloud-generator -v
+                      gzip -f artifacts/word-cloud-generator
+                '''
+                nexusArtifactUploader artifacts: [[artifactId: 'word-cloud-generator', classifier: '', file: 'artifacts/word-cloud-generator.gz', type: 'gz']], credentialsId: 'nexus-creds', groupId: '1', nexusUrl: "$NEXUS_HOST:$NEXUS_PORT", nexusVersion: 'nexus3', protocol: 'http', repository: 'word-cloud-build', version: '1.$BUILD_NUMBER'
+            }
+        }
+
+        stage('Deploy and test on staging') {
+            steps{
+                script{
+                    remote = [:]
+                    remote.name = "staging"
+                    remote.host = WCG_STAGING_HOST
+                    remote.allowAnyHosts = true
+                    remote.failOnError = true
+                    withCredentials([
+                            usernamePassword(credentialsId: 'staging-creds', usernameVariable: 'STAGING_USERNAME', passwordVariable: 'STAGING_PASSWORD'),
+                            usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')
+                        ]) {
+                        remote.user = STAGING_USERNAME
+                        remote.password = STAGING_PASSWORD
+                        sshCommand remote: remote, command: 'sudo service wordcloud stop'
+                        sshCommand remote: remote, command: "curl -X GET http://${NEXUS_HOST}:${NEXUS_PORT}/repository/word-cloud-build/1/word-cloud-generator/1.${BUILD_NUMBER}/word-cloud-generator-1.${BUILD_NUMBER}.gz -o /opt/wordcloud/word-cloud-generator.gz -u ${NEXUS_USER}:${NEXUS_PASSWORD}"
+                        sshCommand remote: remote, command: 'ls -l /opt/wordcloud'
+                        sshCommand remote: remote, command: 'gunzip -f /opt/wordcloud/word-cloud-generator.gz'
+                        sshCommand remote: remote, command: 'chmod +x /opt/wordcloud/word-cloud-generator'
+                        sshCommand remote: remote, command: 'sudo service wordcloud start'
+                    }
+                }
+
+                script {
+                    parallel(test_set)
+                }
+            }
+        }
+
+        stage('Deploy on production') {
+            steps{
+                script{
+                    remote = [:]
+                    remote.name = "production"
+                    remote.host = WCG_PROD_HOST
+                    remote.allowAnyHosts = true
+                    remote.failOnError = true
+                    withCredentials([
+                            usernamePassword(credentialsId: 'prod-creds', usernameVariable: 'PROD_USERNAME', passwordVariable: 'PROD_PASSWORD'),
+                            usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')
+                        ]) {
+                        remote.user = PROD_USERNAME
+                        remote.password = PROD_PASSWORD
+                        sshCommand remote: remote, command: 'sudo service wordcloud stop'
+                        sshCommand remote: remote, command: "curl -X GET http://${NEXUS_HOST}:${NEXUS_PORT}/repository/word-cloud-build/1/word-cloud-generator/1.${BUILD_NUMBER}/word-cloud-generator-1.${BUILD_NUMBER}.gz -o /opt/wordcloud/word-cloud-generator.gz -u ${NEXUS_USER}:${NEXUS_PASSWORD}"
+                        sshCommand remote: remote, command: 'ls -l /opt/wordcloud'
+                        sshCommand remote: remote, command: 'gunzip -f /opt/wordcloud/word-cloud-generator.gz'
+                        sshCommand remote: remote, command: 'chmod +x /opt/wordcloud/word-cloud-generator'
+                        sshCommand remote: remote, command: 'sudo service wordcloud start'
+                    }
+                }
+            }
+        }
+    }
+}
