@@ -1,0 +1,45 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1341.vd9fa_65f771dd">
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@3769.v8b_e595e4d40d">
+    <script>pipeline {
+    agent any
+
+    tools { go &apos;go_lang&apos; }
+    environment {
+        NEXUS_HOST = &apos;nexus&apos;
+        NEXUS_PORT = &apos;8081&apos;
+    }
+    stages {
+        stage(&apos;Get wcg source code&apos;) {
+            steps {
+                git &apos;https://github.com/wickett/word-cloud-generator&apos;
+            }
+        }
+
+        stage(&apos;Check wcg souce code and testing&apos;) {
+            steps {
+                sh &apos;&apos;&apos;make lint
+                      make test
+                &apos;&apos;&apos;
+            }
+        }
+
+        stage(&apos;Build artifact and upload to nexus&apos;) {
+            steps{
+                sh &apos;&apos;&apos;sed -i &quot;s/1.DEVELOPMENT/1.$BUILD_NUMBER/g&quot; static/version
+                      GOOS=linux GOARCH=amd64 go build -o ./artifacts/word-cloud-generator -v
+                      gzip -f artifacts/word-cloud-generator
+                &apos;&apos;&apos;
+                nexusArtifactUploader artifacts: [[artifactId: &apos;word-cloud-generator&apos;, classifier: &apos;&apos;, file: &apos;artifacts/word-cloud-generator.gz&apos;, type: &apos;gz&apos;]], credentialsId: &apos;nexus-creds&apos;, groupId: &apos;1&apos;, nexusUrl: &quot;$NEXUS_HOST:$NEXUS_PORT&quot;, nexusVersion: &apos;nexus3&apos;, protocol: &apos;http&apos;, repository: &apos;word-cloud-build&apos;, version: &apos;1.$BUILD_NUMBER&apos;
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

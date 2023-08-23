@@ -1,0 +1,14 @@
+golang:latest
+locale:latest
+configuration-as-code:latest
+build-timeout:latest
+credentials-binding:latest
+github-organization-folder:latest
+workflow-aggregator:latest
+subversion:latest
+timestamper:latest
+ws-cleanup:latest
+nexus-artifact-uploader:latest
+ssh:latest
+envinject:latest
+ssh-steps:latest

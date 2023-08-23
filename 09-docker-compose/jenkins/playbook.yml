@@ -1,0 +1,52 @@
+---
+- name: Nexus
+  hosts: localhost
+  become: yes
+
+  pre_tasks:
+    - name: add Debian 9 repo
+      shell: |
+        cat > /etc/apt/sources.list.d/java-8.list << EOF
+        deb http://archive.debian.org/debian stretch main
+        deb-src http://archive.debian.org/debian stretch main
+        EOF
+      args:
+        creates: "/etc/apt/sources.list.d/java-8.list"
+
+    - name: install openjdk-8-jdk
+      apt:
+        pkg:
+          - openjdk-8-jdk
+        update_cache: true
+        state: present
+
+  vars:
+    nexus_version: '3.58.1-01'
+    nexus_timezone: 'UTC'
+    nexus_download_url: "http://download.sonatype.com/nexus/3"
+    nexus_download_dir: '/tmp'
+    nexus_admin_password: 'admin'
+    nexus_anonymous_access: false
+    nexus_config_raw: true
+    nexus_repos_raw_hosted:
+      - name: word-cloud-build
+        version_policy: release
+        write_policy: allow
+    nexus_roles:
+      - id: nx-uploader
+        name: nx-uploader
+        description: nx-uploader
+        privileges:
+          - nx-repository-view-raw-word-cloud-build-*
+        roles: [ ]
+    nexus_local_users:
+      - username: uploader
+        first_name: uploader
+        last_name: uploader
+        email: uploader@email.com
+        password: "uploader"
+        roles:
+          - nx-uploader
+
+  roles:
+    - { role: ansible-thoteam.nexus3-oss, tags: ['ansible-thoteam.nexus3-oss'] }
