@@ -43,5 +43,7 @@ jobs:
           context: .
           push: true
           file: ./07-docker/Dockerfile.multi
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+                      ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }}
+                      ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
           labels: ${{ steps.meta.outputs.labels }}
