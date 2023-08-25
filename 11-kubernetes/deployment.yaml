@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wcg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wcg
+  template:
+    metadata:
+      labels:
+        app: wcg
+    spec:
+      containers:
+        - name: wcg
+          image: ghcr.io/paveldolbik92/wcg:latest
