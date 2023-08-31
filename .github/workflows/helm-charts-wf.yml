@@ -16,19 +16,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      #- name: Configure Git
-      #  run: |
-      #    git config user.name "$GITHUB_ACTOR"
-      #    git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-      #- name: Install Helm
-      #  uses: azure/setup-helm@v3
-
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.ACTION_TOKEN }}
 
       - name: "Echo new_tag"
         run: |
@@ -37,3 +29,14 @@ jobs:
       - name: "Echo previous_tag"
         run: |
           echo "${{ steps.tag_version.outputs.previous_tag }}"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Helm process
+        uses: |
+          helm package 14-argocd/wcg-helm-chart --version 1.0 --app-version 1.0 -d charts
+          helm repo index .
+
+      # Commit all changed files back to the repository
+      - uses: stefanzweifel/git-auto-commit-action@v4
