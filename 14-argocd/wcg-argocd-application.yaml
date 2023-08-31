@@ -8,13 +8,13 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   # The project the application belongs to.
-  project: wcg-progect
+  project: wcg-project
 
   # Source of the application manifests
   source:
-    repoURL: 'https://github.com/PavelDolbik92/devops-hometasks.git'  # Can point to either a Helm chart repo or a git repo.
-    targetRevision: main  # For Helm, this refers to the chart version.
-    path: 11-kubernetes  # This has no meaning for Helm charts pulled directly from a Helm repo instead of git.
+    repoURL: 'https://paveldolbik92.github.io/devops-hometasks/'
+    targetRevision: '*'
+    chart: wcg-helm-chart
 
   # Destination cluster and namespace to deploy the application
   destination:
