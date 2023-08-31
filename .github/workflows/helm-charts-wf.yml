@@ -21,11 +21,20 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Install Helm
-        uses: azure/setup-helm@v3
+      #- name: Install Helm
+      #  uses: azure/setup-helm@v3
 
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@1.64.0 # Don't use @master or @v1 unless you're happy to test the latest version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
           WITH_V: false
+
+      - name: "Echo new_tag"
+        run: echo ${{ env.new_tag }}
+
+      - name: "Echo tag"
+        run: echo ${{ env.tag }}
+
+      - name: "Echo part"
+        run: echo ${{ env.part }}
