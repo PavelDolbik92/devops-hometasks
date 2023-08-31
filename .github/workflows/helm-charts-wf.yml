@@ -27,7 +27,6 @@ jobs:
       # Use the action to generate a tag for itself
       - name: Test action main1 (with_v true)
         id: test_main1
-        uses: ./
         env:
           DRY_RUN: true
           WITH_V: true
@@ -37,7 +36,6 @@ jobs:
 
       - name: Test action main2 (with_v false)
         id: test_main2
-        uses: ./
         env:
           DRY_RUN: true
           WITH_V: false
