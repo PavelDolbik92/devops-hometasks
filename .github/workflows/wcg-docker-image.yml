@@ -6,6 +6,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: wcg
+  BUILD_VERSION: 9
 
 jobs:
   build-and-push-image:
@@ -35,7 +36,7 @@ jobs:
         with:
           context: ./07-docker/
           push: true
-          file: ./07-docker/Dockerfile.multi
+          file: ./14-argocd/Dockerfile.multi
+          build-args: BUILD_VERSION=${{ env.BUILD_VERSION }}
           tags: |
-            ${{ env.REGISTRY }}/${{ steps.owner_string.outputs.lowercase }}/wcg:latest
-            ${{ env.REGISTRY }}/${{ steps.owner_string.outputs.lowercase }}/wcg:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.owner_string.outputs.lowercase }}/${{ env.IMAGE_NAME }}:${{ env.BUILD_VERSION }}
