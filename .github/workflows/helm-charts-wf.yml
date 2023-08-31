@@ -3,6 +3,11 @@ name: Release Charts
 on:
   workflow_dispatch:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: wcg
+  BUILD_VERSION: 10
+
 jobs:
   release:
     # depending on default permission settings for your org (contents being read-only or read-write for workloads), you will have to add permissions
@@ -35,8 +40,31 @@ jobs:
 
       - name: Helm process
         run: |
-          helm package 14-argocd/wcg-helm-chart --version 1.0 --app-version 1.0 -d charts
-          helm repo index .
+          helm package 14-argocd/wcg-helm-chart --version ${{ steps.tag_version.outputs.new_tag }} --app-version ${{ steps.tag_version.outputs.new_tag }} -d charts
+          helm repo index --url https://paveldolbik92.github.io/devops-hometasks/ .
 
       - name: Commit all changed files back to the repository
         uses: stefanzweifel/git-auto-commit-action@v4
+
+      - id: owner_string
+        uses: ASzc/change-string-case-action@v2
+        with:
+          string: ${{ github.repository_owner }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.ACTION_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./14-argocd/
+          push: true
+          file: ./14-argocd/Dockerfile.multi
+          build-args: BUILD_VERSION=${{ steps.tag_version.outputs.new_tag }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.owner_string.outputs.lowercase }}/${{ env.IMAGE_NAME }}:${{ steps.tag_version.outputs.new_tag }}
+            ${{ env.REGISTRY }}/${{ steps.owner_string.outputs.lowercase }}/${{ env.IMAGE_NAME }}:latest
