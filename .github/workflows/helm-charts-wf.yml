@@ -30,11 +30,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
           WITH_V: false
 
+      - name: "Echo test"
+        run: |
+          echo test!!!!!! > runs/log.txt
+
       - name: "Echo new_tag"
-        run: echo ${{ env.new_tag }}
+        run: |
+          echo "new_tag" > runs/log.txt
 
       - name: "Echo tag"
-        run: echo ${{ env.tag }}
+        run: |
+          echo "tag" > runs/log.txt
 
       - name: "Echo part"
-        run: echo ${{ env.part }}
+        run: |
+          echo "part" > runs/log.txt
