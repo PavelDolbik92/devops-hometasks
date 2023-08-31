@@ -37,6 +37,6 @@ jobs:
           context: ./07-docker/
           push: true
           file: ./14-argocd/Dockerfile.multi
-          build-args: BUILD_VERSION=3
+          build-args: BUILD_VERSION=${{ env.BUILD_VERSION }}
           tags: |
             ${{ env.REGISTRY }}/${{ steps.owner_string.outputs.lowercase }}/${{ env.IMAGE_NAME }}:${{ env.BUILD_VERSION }}

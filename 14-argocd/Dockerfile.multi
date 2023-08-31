@@ -1,7 +1,7 @@
 FROM golang:1.16 AS builder
 WORKDIR /tmp/world-cloud-generator
 ARG BUILD_NUMBER
-ENV BUILD_NUMBER ${BUILD_NUMBER}
+ENV BUILD_NUMBER=${BUILD_NUMBER}
 RUN if [ -z "$BUILD_NUMBER" ]; then echo 'Environment variable BUILD_NUMBER must be specified. Exiting.'; exit 1; fi
 RUN git clone https://github.com/Fenikks/word-cloud-generator.git /tmp/world-cloud-generator
 RUN sed -i "s/1.DEVELOPMENT/1.$BUILD_NUMBER/g" static/version
