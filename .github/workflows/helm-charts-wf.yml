@@ -32,16 +32,16 @@ jobs:
 
       - name: "Echo test"
         run: |
-          echo test!!!!!! > runs/log.txt
+          echo test!!!!!!
 
       - name: "Echo new_tag"
         run: |
-          echo "new_tag" > runs/log.txt
+          echo "{{ env.new_tag }}"
 
       - name: "Echo tag"
         run: |
-          echo "tag" > runs/log.txt
+          echo "{{ env.tag }}"
 
       - name: "Echo part"
         run: |
-          echo "part" > runs/log.txt
+          echo "{{ env.part }}"
