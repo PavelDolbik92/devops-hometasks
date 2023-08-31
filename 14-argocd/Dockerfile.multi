@@ -1,10 +1,10 @@
 FROM golang:1.16 AS builder
 WORKDIR /tmp/world-cloud-generator
 ARG BUILD_VERSION
-ENV BUILD_VERSION=$BUILD_NUMBER
-RUN if [ -z "$BUILD_NUMBER" ]; then echo 'Environment variable BUILD_VERSION must be specified. Exiting.'; exit 1; fi
+ENV BUILD_VERSION=$BUILD_VERSION
+RUN if [ -z "$BUILD_VERSION" ]; then echo 'Environment variable BUILD_VERSION must be specified. Exiting.'; exit 1; fi
 RUN git clone https://github.com/Fenikks/word-cloud-generator.git /tmp/world-cloud-generator
-RUN sed -i "s/1.DEVELOPMENT/1.$BUILD_NUMBER/g" static/version
+RUN sed -i "s/1.DEVELOPMENT/1.$BUILD_VERSION/g" static/version
 RUN GOOS=linux GOARCH=amd64 go build -o ./artifacts/word-cloud-generator -v
 
 FROM alpine:latest
