@@ -38,5 +38,5 @@ jobs:
           helm package 14-argocd/wcg-helm-chart --version 1.0 --app-version 1.0 -d charts
           helm repo index .
 
-      - name: Commit all changed files back to the repository
-        uses: stefanzweifel/git-auto-commit-action@v4
+      #- name: Commit all changed files back to the repository
+      #  uses: stefanzweifel/git-auto-commit-action@v4
