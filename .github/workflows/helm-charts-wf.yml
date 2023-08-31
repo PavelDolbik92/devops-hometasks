@@ -36,12 +36,12 @@ jobs:
 
       - name: "Echo new_tag"
         run: |
-          echo "{{ env.new_tag }}"
+          echo "${{ env.new_tag }}"
 
       - name: "Echo tag"
         run: |
-          echo "{{ env.tag }}"
+          echo "${{ env.tag }}"
 
       - name: "Echo part"
         run: |
-          echo "{{ env.part }}"
+          echo "${{ env.part }}"
