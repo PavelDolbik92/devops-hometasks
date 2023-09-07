@@ -35,6 +35,10 @@ jobs:
         run: |
           echo "${{ steps.tag_version.outputs.previous_tag }}"
 
+      - name: "Echo ACTION_TOKEN"
+        run: |
+          echo "${{ secrets.ACTION_TOKEN }}"
+
       - name: Install Helm
         uses: azure/setup-helm@v3
 
