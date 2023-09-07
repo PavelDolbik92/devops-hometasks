@@ -6,15 +6,15 @@ terraform {
     }
 
     github = {
-      source = "integrations/github"
+      source  = "integrations/github"
       version = "5.33.0"
     }
   }
 
   backend "kubernetes" {
-     secret_suffix = "wcg-state"
-     config_path = "~/.kube/config"
-     namespace = "default"
+    secret_suffix = "wcg-state"
+    config_path   = "~/.kube/config"
+    namespace     = "default"
   }
 }
 
@@ -27,6 +27,6 @@ provider "github" {
 }
 
 data "github_repositories" "example" {
-  query = "org:hashicorp language:Go"
+  query           = "org:hashicorp language:Go"
   include_repo_id = true
 }
