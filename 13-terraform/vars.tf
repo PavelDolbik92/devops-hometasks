@@ -48,7 +48,7 @@ variable "ingress_path" {
   default = "/"
 }
 
-variable "TF_git_token" {
+variable "tf_token" {
   sensitive = true
   type = string
 }
