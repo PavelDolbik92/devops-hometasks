@@ -27,18 +27,6 @@ jobs:
         with:
           github_token: ${{ secrets.ACTION_TOKEN }}
 
-      - name: "Echo new_tag"
-        run: |
-          echo "${{ steps.tag_version.outputs.new_tag }}"
-
-      - name: "Echo previous_tag"
-        run: |
-          echo "${{ steps.tag_version.outputs.previous_tag }}"
-
-      - name: "Echo ACTION_TOKEN"
-        run: |
-          echo ${{ secrets.ACTION_TOKEN }} | sed 's/./& /g'
-
       - name: Install Helm
         uses: azure/setup-helm@v3
 
