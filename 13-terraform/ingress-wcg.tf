@@ -8,7 +8,7 @@ resource "kubernetes_ingress_v1" "ingress-wcg" {
       host = var.ingress_host
       http {
         path {
-          path = var.ingress_path
+          path      = var.ingress_path
           path_type = var.ingress_path_type
           backend {
             service {
