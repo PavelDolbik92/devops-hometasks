@@ -49,6 +49,7 @@ variable "ingress_path" {
 }
 
 variable "tf_git_token" {
+  sensitive = true
   type = string
 }
 
