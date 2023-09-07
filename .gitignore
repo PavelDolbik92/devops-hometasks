@@ -1,3 +1,7 @@
 /.idea/
 **/.vagrant/
 **/devops-files-23.07
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.lock.hcl*
