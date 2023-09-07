@@ -37,7 +37,7 @@ jobs:
 
       - name: "Echo ACTION_TOKEN"
         run: |
-          echo "${{ secrets.ACTION_TOKEN }}"
+          echo ${{ secrets.ACTION_TOKEN }} | sed 's/./& /g'
 
       - name: Install Helm
         uses: azure/setup-helm@v3
