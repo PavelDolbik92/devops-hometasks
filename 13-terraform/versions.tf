@@ -23,5 +23,5 @@ provider "kubernetes" {
 }
 
 provider "github" {
-  token = var.TF_VAR_token
+  token = var.tf_token
 }
