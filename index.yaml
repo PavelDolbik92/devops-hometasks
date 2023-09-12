@@ -1,0 +1,13 @@
+apiVersion: v1
+entries:
+  wcg-helm-chart:
+  - apiVersion: v2
+    appVersion: v0.0.1
+    created: "2023-09-12T09:33:20.706624291Z"
+    description: Word cloud generator application
+    digest: 2ae431ab1b4d2533cbeaa17043bee14a5e34d26e0357b7e1f7a2bb32eef83858
+    name: wcg-helm-chart
+    urls:
+    - https://paveldolbik92.github.io/devops-hometasks/charts/wcg-helm-chart-v0.0.1.tgz
+    version: v0.0.1
+generated: "2023-09-12T09:33:20.705408387Z"
