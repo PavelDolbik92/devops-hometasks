@@ -6,7 +6,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: wcg
-  BUILD_VERSION: 10
+  HELM_CHART_PATH: 14-argocd/wcg-helm-chart
 
 jobs:
   release:
@@ -30,7 +30,8 @@ jobs:
 
       - name: Helm process
         run: |
-          helm package 14-argocd/wcg-helm-chart --version ${{ steps.tag_version.outputs.new_tag }} --app-version ${{ steps.tag_version.outputs.new_tag }} -d charts
+          helm lint ${{ env.HELM_CHART_PATH }}
+          helm package ${{ env.HELM_CHART_PATH }} --version ${{ steps.tag_version.outputs.new_tag }} --app-version ${{ steps.tag_version.outputs.new_tag }} -d charts
           helm repo index --url https://paveldolbik92.github.io/devops-hometasks/ .
 
       - name: Commit all changed files back to the repository
